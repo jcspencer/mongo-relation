@@ -1,0 +1,47 @@
+{
+  "name": "mongoose-relationships",
+  "description": "Model relationships plugin for Mongoose",
+  "version": "0.4.0",
+  "homepage": "https://github.com/jeromegn/mongoose-relationships/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jeromegn/mongoose-relationships.git"
+  },
+  "keywords": [
+    "mongodb",
+    "mongoose",
+    "orm",
+    "relations",
+    "relationships",
+    "habtm"
+  ],
+  "author": {
+    "name": "Jerome Gravel-Niquet",
+    "email": "jeromegn@gmail.com",
+    "url": "http://jgn.me/"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "main": "./index.js",
+  "engines": {
+    "node": ">= 0.2.0"
+  },
+  "dependencies": {
+    "mongoose": ">=2.0.0"
+  },
+  "devDependencies": {
+    "should": "0.2.1"
+  },
+  "readme": "Mongoose Relationships\n======================\n\n_... because sometimes embedded documents aren't enough._\n\nA plugin for [Mongoose](http://github.com/learnboost/mongoose) adding a simple syntax for model relationships and providing useful helpers to empower them.\n\nThis is an early release with limited functionalities. I'm looking for feedback on the API and features (been exploring a few different solutions, nothing's impossible!).\n\nI'm inspiring from various libraries in Ruby I've used throughout the years. Might not be your cup of tea.\n\nGoals\n-----\n\n* Be unobtrusive and compliant with the ways of Mongoose (coding style, testing, API).\n\nUsage\n=====\n\nFirst, `npm install mongoose-relationships`.\n\nAdd relationships to your schema through either `hasMany`, `belongsTo` or `habtm` (has and belongs to many).\n\n* {String} `ModelName` is the name of the Model.\n* {Object} `options`\n    * {String} `through` if you want to specify what path to use for the relationship. Else the path will be created for you by pluralizing the `ModelName`.\n    * {String} `dependent` takes either \"delete\" or \"nullify\" and indicated what to do when the element is removed from the parent's `through` array.\n\n```javascript\nvar mongoose = require('mongoose');\nrequire('mongoose-relationships');\n\nYourSchema.hasMany('ModelName', {through: 'PathName', dependent: 'delete|nullify'});\n```\n\nIt's good to take note that for \"has and belongs to many\" type relationships, the dependent option only deletes the reference, not the actual referenced document.\n\nExamples\n--------\n\nOne to Many\n-----------\n\n```javascript\nUserSchema.hasMany('Post', {dependent: 'delete'});\n\n// uses the 'author' path for the relation\nPostSchema.belongsTo('User', {through: 'author'});\n```\n\nHas and Belongs to Many\n-----------------------\n\n```javascript\nPostSchema.habtm('Category');\nCategorySchema.habtm('Post');\n```\n\nMethods\n=======\n\nEvery `Document` that has their `Schema` plugged with `mongoose-relationships` has access to the following methods.\n\n__Let's use this starting point:__\n\n```javascript\nvar mongoose = require('mongoose');\nrequire('mongoose-relationships');\n\n// UserSchema stores an Array of ObjectIds for posts\nvar UserSchema = new mongoose.Schema({\n    posts: [mongoose.Schema.ObjectId]\n});\n\n// PostSchema stores an ObjectId for the author\nvar PostSchema = new mongoose.Schema({\n    title  : String\n  , author : mongoose.Schema.ObjectId\n});\n\n// Attach the plugin\nUserSchema.hasMany('Post');\nPostSchema.belongsTo('User', {through: 'author'});\n\nvar User = mongoose.model('User', UserSchema)\n  , Post = mongoose.model('Post', PostSchema);\n```\n\ncreate\n------\n\nTakes care of creating the child document and the links between it and the parent document.\n\n* {Object|Array} `objs` representation of the child document(s) to create\n* {Function} `callback` (optional) function returning an error if any, the new parent document and the created post(s)\n\n__Example:__\n\n```javascript\nvar user = new User();\n\nuser.posts.create({\n  title: \"Mongoose, now with added love through relationships!\"\n}, function(err, user, post){\n  // user.posts.length === 1\n  // post.title === \"Mongoose, now with added love through relationships!\"\n});\n\n// Using an `Array`\nuser.posts.create([\n    { title: \"Not too imaginative post title\" }\n  , { title: \"... a tad more imaginative post title\" }\n], function(err, user, posts){\n  // user.posts.length === 3\n  // posts.length == 2\n  // posts[0] instanceof Post\n});\n```\n\nbuild\n-----\n\nInstantiates a child document, appends its reference to the parent document and returns the child document. _Does not save anything._\n\n* {Object} `obj` representation of the child document(s) to create\n\n__Example:__\n\n```javascript\nvar post = user.posts.build({title: \"Just instantiating me\"});\n// post.author === user._id\n```\n\nappend\n------\n\nAllows pushing of an already existing document into the parent document. Creates all the right references.\n\nWorks with either a saved or unsaved document.\n\nThe parent document is not saved, you'll have to do that yourself.\n\n* {Document} `child` document to push.\n* {Function} `callback` called with an error if any and the child document w/ references.\n\n__Example:__\n\n```javascript\nvar post = new Post();\n\nuser.posts.append(post, function(err, post){\n  // post.author === user._id\n  // user.posts.id(post._id) === post._id\n});\n```\n\nconcat\n------\n\nJust like `Array.prototype.concat`, it appends an `Array` to another `Array`\n\n* {Document} `child` document to push.\n* {Function} `callback` called with an error if any and the child document w/ references.\n\n__Example:__\n\n```javascript\nvar posts = [new Post(), new Post()];\n\nuser.posts.concat(posts, function(err, posts){\n  // `posts` is an `Array` of `Document`\n  // each have its author set to `user._id`\n});\n```\n\nfind\n----\n\nIt's the same as a `Mongoose.Query`. Only looks through the children documents.\n\nSee [Mongoose.Query](http://mongoosejs.com/docs/finding-documents.html) for the params\n\n__Example:__\n\n```javascript\nuser.posts.find({title: \"Not too imaginative post title\"}, function(err, posts){\n  // posts.length === 1\n  // posts[0].author == user._id\n  // posts[0].title == \"Not too imaginative post title\";\n});\n```\n\npopulate\n--------\n\nSome sugary syntax to populate the parent document's child documents.\n\n* {Array} `fields` (optional) you want to get back with each child document\n* {Function} `callback` called with an error and the populate document\n\n__Example:__\n\n```javascript\nuser.posts.populate(function(err, user){\n  // user.posts.length === 2\n});\n```\n\nremove\n------\n\nDepending on the `dependent` option, it'll either delete or nullify the \n\n* {ObjectId} `id` of the document to remove\n* {Function} `callback` (optional) called after the deed is done with an error if any and the new parent document.\n\n__Example:__\n\n```javascript\nuser.posts.remove(user.posts[0]._id, function(err, user){\n  // The post will either be delete or have its `author` field nullified\n});\n```\n\nTesting\n=======\n\nI'm using [Expresso](http://github.com/visionmedia/expresso) w/ [Should](http://github.com/visionmedia/should.js). Tests are located in `./test` and should be ran with the `make test` command. \n\nTodo\n====\n\n* One to one relationships\n* Make sure I didn't break anything with Mongoose\n\nContribute\n==========\n\n* Pick up any of the items above & send a pull request (w/ __passing__ tests please)\n* Discuss the API / features in the [Issues](http://github.com/jeromegn/mongoose-relationships/issues)\n* Use it and report bugs in the [Issues](http://github.com/jeromegn/mongoose-relationships/issues) (w/ __failing__ tests please)\n\n",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/jeromegn/mongoose-relationships/issues"
+  },
+  "_id": "mongoose-relationships@0.4.0",
+  "dist": {
+    "shasum": "5810a59ad833a16006a20ff5ff56cc1a070f5477"
+  },
+  "_from": "mongoose-relationships@",
+  "_resolved": "https://registry.npmjs.org/mongoose-relationships/-/mongoose-relationships-0.4.0.tgz"
+}

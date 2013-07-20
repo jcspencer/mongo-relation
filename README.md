@@ -20,7 +20,7 @@ Goals
 Usage
 =====
 
-First, `npm install mongoose-relationships`.
+First, `npm install mongo-relation`.
 
 Add relationships to your schema through either `hasMany`, `belongsTo` or `habtm` (has and belongs to many).
 
@@ -31,7 +31,7 @@ Add relationships to your schema through either `hasMany`, `belongsTo` or `habtm
 
 ```javascript
 var mongoose = require('mongoose');
-require('mongoose-relationships');
+require('mongo-relation');
 
 YourSchema.hasMany('ModelName', {through: 'PathName', dependent: 'delete|nullify'});
 ```
@@ -62,13 +62,13 @@ CategorySchema.habtm('Post');
 Methods
 =======
 
-Every `Document` that has their `Schema` plugged with `mongoose-relationships` has access to the following methods.
+Every `Document` that has their `Schema` plugged with `mongo-relation` has access to the following methods.
 
 __Let's use this starting point:__
 
 ```javascript
 var mongoose = require('mongoose');
-require('mongoose-relationships');
+require('mongo-relation');
 
 // UserSchema stores an Array of ObjectIds for posts
 var UserSchema = new mongoose.Schema({
@@ -240,5 +240,5 @@ Contribute
 ==========
 
 * Pick up any of the items above & send a pull request (w/ __passing__ tests please)
-* Discuss the API / features in the [Issues](http://github.com/JamesS237/mongoose-relationships/issues)
-* Use it and report bugs in the [Issues](http://github.com/JamesS237/mongoose-relationships/issues) (w/ __failing__ tests please)
+* Discuss the API / features in the [Issues](http://github.com/JamesS237/mongo-relation/issues)
+* Use it and report bugs in the [Issues](http://github.com/JamesS237/mongo-relation/issues) (w/ __failing__ tests please)
