@@ -20,7 +20,7 @@
     "url": "http://jgn.me/"
   },
   "scripts": {
-    "test": "make test"
+    "test": "./node_modules/.bin/expresso test/*.test.js"
   },
   "main": "./index.js",
   "engines": {
