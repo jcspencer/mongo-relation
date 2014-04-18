@@ -20,7 +20,7 @@
     "url": "http://jgn.me/"
   },
   "scripts": {
-    "test": "make test"
+    "test": "./node_modules/.bin/expresso test/*.test.js"
   },
   "main": "./index.js",
   "engines": {
@@ -30,7 +30,8 @@
     "mongoose": ">=2.0.0"
   },
   "devDependencies": {
-    "should": "0.2.1"
+    "expresso": "0.9.2",
+    "should": "3.3.1"
   }
 }
 

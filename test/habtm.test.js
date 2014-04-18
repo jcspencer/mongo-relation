@@ -75,23 +75,23 @@ module.exports = {
       , Post = db.model('Post', posts)
       , post = new Post();
 
-    category.posts.should.respondTo('create');
-    post.categories.should.respondTo('create');
+    category.posts.create.should.be.a.Function;
+    post.categories.create.should.be.a.Function;
     
-    category.posts.should.respondTo('find');
-    post.categories.should.respondTo('find');
+    category.posts.find.should.be.a.Function;
+    post.categories.find.should.be.a.Function;
     
-    category.posts.should.respondTo('populate');
-    post.categories.should.respondTo('populate');
+    category.posts.populate.should.be.a.Function;
+    post.categories.populate.should.be.a.Function;
     
-    category.posts.should.respondTo('remove');
-    post.categories.should.respondTo('remove');
+    category.posts.remove.should.be.a.Function;
+    post.categories.remove.should.be.a.Function;
     
-    category.posts.should.respondTo('append');
-    post.categories.should.respondTo('append');
+    category.posts.append.should.be.a.Function;
+    post.categories.append.should.be.a.Function;
     
-    category.posts.should.respondTo('concat');
-    post.categories.should.respondTo('concat');
+    category.posts.concat.should.be.a.Function;
+    post.categories.concat.should.be.a.Function;
     
     db.close()
   },
@@ -107,8 +107,8 @@ module.exports = {
     var built = category.posts.build(post);
     
     built.should.be.an.instanceof(Post);
-    built.categories.should.contain(category._id);
-    category.posts.should.contain(built._id);
+    built.categories.should.containEql(category._id);
+    category.posts.should.containEql(built._id);
     
     category.posts.should.have.length(1);
     
@@ -127,8 +127,8 @@ module.exports = {
     
     built.forEach(function(post){
       post.should.be.an.instanceof(Post);
-      post.categories.should.contain(category._id);
-      category.posts.should.contain(post._id);
+      post.categories.should.containEql(category._id);
+      category.posts.should.containEql(post._id);
     });
     
     category.posts.should.have.length(2);
@@ -146,8 +146,8 @@ module.exports = {
     category.posts.append(post, function(err, post){
       should.strictEqual(err, null);
       
-      post.categories.should.contain(category._id);
-      category.posts.should.contain(post._id);
+      post.categories.should.containEql(category._id);
+      category.posts.should.containEql(post._id);
       
       db.close();
     });
@@ -164,8 +164,8 @@ module.exports = {
       should.strictEqual(err, null);
       
       posts.forEach(function(post){
-        post.categories.should.contain(category._id);
-        category.posts.should.contain(post._id);
+        post.categories.should.containEql(category._id);
+        category.posts.should.containEql(post._id);
       });
       
       db.close();
@@ -191,7 +191,7 @@ module.exports = {
 
       post.should.be.an.instanceof(Post);
       post.title.should.equal("Easy relationships with mongoose-relationships")
-      post.categories.should.contain(category._id);
+      post.categories.should.containEql(category._id);
 
       db.close();
     });
@@ -215,9 +215,9 @@ module.exports = {
 
       posts.should.have.length(2);
       posts.forEach(function(post){
-        category.posts.should.contain(post._id)
+        category.posts.should.containEql(post._id)
         post.should.be.an.instanceof(Post);
-        post.categories.should.contain(category._id);
+        post.categories.should.containEql(category._id);
       });
 
       db.close();
@@ -246,9 +246,9 @@ module.exports = {
 
         newPosts.should.have.length(2);
         newPosts.forEach(function(post){
-          category.posts.should.contain(post._id)
+          category.posts.should.containEql(post._id)
           post.should.be.an.instanceof(Post);
-          post.categories.should.contain(category._id);
+          post.categories.should.containEql(category._id);
         });
 
         find.find({title: "Blog post #1"}, function(err, otherPosts){
@@ -284,7 +284,7 @@ module.exports = {
       category.posts.remove(post._id, function(err, category){
         should.strictEqual(err, null);
         
-        category.posts.should.not.contain(post._id);
+        category.posts.should.not.containEql(post._id);
         category.posts.should.have.length(1);
         
         // Post, should still exist, this is HABTM
@@ -294,7 +294,7 @@ module.exports = {
 
           should.exist(post);
           
-          post.categories.should.not.contain(category._id);
+          post.categories.should.not.containEql(category._id);
           post.categories.should.have.length(0);
           
           post.categories.create({}, function(err, post, category){
@@ -304,14 +304,14 @@ module.exports = {
               should.strictEqual(err, null);
 
               // Deletes the category reference in the post
-              post.categories.should.not.contain(category._id);
+              post.categories.should.not.containEql(category._id);
               post.categories.should.have.length(0);
 
               // ... but shouldn't have in the category's post (no dependent: delete);
               Category.findById(category._id, function(err, category){
                 should.strictEqual(err, null);
 
-                category.posts.should.contain(post._id);
+                category.posts.should.containEql(post._id);
                 category.posts.should.have.length(1);
 
                 db.close();
@@ -341,7 +341,7 @@ module.exports = {
         Category
           .findById(category._id)
           .populate('posts')
-          .run(function(err, populatedCategory){
+          .exec(function(err, populatedCategory){
             should.strictEqual(err, null);
             
             populatedCategory.posts.forEach(function(post){
