@@ -1,9 +1,6 @@
 Mongoose Relationships
 ======================
 
-Forked from [Jerome Gravel-Niquet](https://github.com/jeromegn) because it seemed abandoned.
--------------------------------------------------------------------------------------------
-
 _... because sometimes embedded documents aren't enough._
 
 A plugin for [Mongoose](http://github.com/learnboost/mongoose) adding a simple syntax for model relationships and providing useful helpers to empower them.
