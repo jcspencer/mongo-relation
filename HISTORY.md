@@ -1,3 +1,9 @@
+0.5.0 / 2014-04-18
+==================
+
+* Fix JS tests. Thanks to [jonstorer](https://github.com/jonstorer) #5
+* Fix TypeError on Query. Thanks to [Tolsi](https://github.com/Tolsi) #3
+
 0.4.0 / 2011-09-01
 ==================
 
