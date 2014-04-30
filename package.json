@@ -20,18 +20,19 @@
     "url": "http://jgn.me/"
   },
   "scripts": {
-    "test": "./node_modules/.bin/expresso test/*.test.js"
+    "test": "./node_modules/.bin/mocha -R spec specs/*.spec.js",
+    "nyan": "./node_modules/.bin/mocha -R nyan specs/*.spec.js"
   },
   "main": "./index.js",
   "engines": {
     "node": ">= 0.2.0"
   },
   "dependencies": {
-    "mongoose": ">=2.0.0"
+    "mongoose": ">=3.0.0"
   },
   "devDependencies": {
-    "expresso": "0.9.2",
-    "should": "3.3.1"
+    "mocha": "latest",
+    "should": "latest"
   }
 }
 
