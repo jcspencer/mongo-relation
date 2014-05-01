@@ -209,7 +209,7 @@ user.posts.populate(function(err, user){
 remove
 ------
 
-Depending on the `dependent` option, it'll either delete or nullify the 
+Depending on the `dependent` option, it'll either delete or nullify the
 
 * {ObjectId} `id` of the document to remove
 * {Function} `callback` (optional) called after the deed is done with an error if any and the new parent document.
@@ -225,7 +225,7 @@ user.posts.remove(user.posts[0]._id, function(err, user){
 Testing
 =======
 
-I'm using [Expresso](http://github.com/visionmedia/expresso) w/ [Should](http://github.com/visionmedia/should.js). Tests are located in `./test` and should be ran with the `make test` command. 
+Mongo-Relation uses [Mocha](http://github.com/visionmedia/mocha) with [Should](http://github.com/visionmedia/should.js). Tests are located in `./test` and should be ran with the `make test` command.
 
 Todo
 ====
