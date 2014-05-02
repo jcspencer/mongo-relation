@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 var PostSchema = new mongoose.Schema({
-  title:  String
+  title: String
 });
 
 PostSchema.belongsTo('User', { through: 'editor' });

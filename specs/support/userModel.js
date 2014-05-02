@@ -1,12 +1,13 @@
 var mongoose = require('mongoose');
 
 var UserSchema = new mongoose.Schema({
-  name:      String,
-  someArray: [ mongoose.Schema.Types.ObjectId ]
+  name: String
 });
 
-UserSchema.hasMany('Tweet', { dependent: 'delete' });
-UserSchema.hasMany('Tag',   { dependent: 'nullify'});
-UserSchema.hasOne( 'Post',  { through:   'post'   });
+UserSchema.hasMany('Tag',          { dependent: 'nullify'});
+UserSchema.hasMany('Tweet',        { dependent: 'delete' });
+UserSchema.hasOne( 'Post',         { through:   'post'   });
+UserSchema.hasMany('Notification', { setParent: false, dependent: 'delete'  });
+UserSchema.hasMany('Address',      { setParent: false, dependent: 'nullify' });
 
 module.exports = mongoose.model('User', UserSchema);
