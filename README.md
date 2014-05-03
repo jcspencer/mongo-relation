@@ -1,6 +1,5 @@
-Mongoose Relationships
+Mongoose Relationships [![Build Status](https://travis-ci.org/JamesS237/mongo-relation.svg?branch=master)](https://travis-ci.org/JamesS237/mongo-relation)
 ======================
-
 _... because sometimes embedded documents aren't enough._
 
 A plugin for [Mongoose](http://github.com/learnboost/mongoose) adding a simple syntax for model relationships and providing useful helpers to empower them.
@@ -226,12 +225,6 @@ Testing
 =======
 
 Mongo-Relation uses [Mocha](http://github.com/visionmedia/mocha) with [Should](http://github.com/visionmedia/should.js). Tests are located in `./test` and should be ran with the `make test` command.
-
-Todo
-====
-
-* One to one relationships
-* Make sure I didn't break anything with Mongoose
 
 Contribute
 ==========
