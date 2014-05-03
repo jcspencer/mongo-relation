@@ -1,3 +1,5 @@
+Add Travis CI
+
 HasMany should not set the id on the parent document
 
     User.hasMany('Tweet');
