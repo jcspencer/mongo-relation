@@ -12,10 +12,6 @@ describe('hasOne', function() {
     Tweet.schema.paths.author.options.belongsTo.should.equal('User');
   });
 
-  it('adds the belongsTo path to the child schema', function() {
-    Post.schema.paths.editor.options.belongsTo.should.equal('User');
-  });
-
   it('adds the hasOne path to the parent schema', function() {
     User.schema.paths.post.options.hasOne.should.equal('Post');
   });

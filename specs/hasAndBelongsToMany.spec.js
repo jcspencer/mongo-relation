@@ -8,7 +8,7 @@ var mongoose = require('mongoose'),
 
 describe('hasManyBelongsToMany', function() {
 
-  it('has hasMany on the path', function() {
+  it('has habtm on the path', function() {
     Category.schema.paths['posts'].options.habtm.should.equal('Post');
   });
 
