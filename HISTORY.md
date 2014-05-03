@@ -1,3 +1,9 @@
+0.5.3 / 2014-05-03
+==================
+
+* Migrated tests to Mocha. Thanks to @jonstorer
+* Added TravisCI
+
 0.5.2 / 2014-04-18
 ==================
 
