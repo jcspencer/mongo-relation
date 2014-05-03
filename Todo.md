@@ -5,3 +5,52 @@ HasMany should not set the id on the parent document
     tweet = user.tweets.build();
     user.tweets.should.eql([]);
     tweet.user.should.eql user._id;
+
+
+
+#### hasOne
+
+User hasOne Profile
+
+Use case: A required relationship - A user would not make sense without a profile. Every user must have one.
+
+| User       | Profile |
+|------------|---------|
+| profile_id | id      |
+
+plus unique index on Profile.user_id
+
+    user.profile.age
+
+#### hasMany
+
+User hasMany Profiles
+
+| User | Profile |
+|------|---------|
+| id   | user_id |
+
+    user.profiles.first.age
+
+#### belongsTo
+
+Profile belongsTo User
+
+Use case: A profile does not make sense without the user. Orphaned objects shouldn't exist.
+
+| User       | Profile |
+|------------|---------|
+| id         | user_id |
+
+    profile.user.id
+
+#### hasAndBelongsToMany
+
+User hasMany profiles, profiles hasMany users
+
+| User        | Profile  |
+|-------------|----------|
+| profile_ids | user_ids |
+
+    user.profiles.first.id
+    profile.users.first.id
