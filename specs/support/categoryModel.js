@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 var CategorySchema = new mongoose.Schema({
-  title:  String
+  title: String
 });
 
 CategorySchema.belongsTo('User', { through: 'editor' });
