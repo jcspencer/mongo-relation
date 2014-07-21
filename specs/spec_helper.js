@@ -10,7 +10,7 @@ var resetDb = function(next){
   });
 };
 
-beforeEach(function(done){
+before(function(done){
   if(mongoose.get('isConnected')){
     resetDb(done);
   } else {

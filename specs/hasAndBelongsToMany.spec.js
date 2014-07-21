@@ -16,6 +16,16 @@ describe('hasManyBelongsToMany', function() {
     Post.schema.paths['categories'].options.habtm.should.equal('Category');
   });
 
+  it('does not allow setParent to be manually set', function() {
+    var ItemSchema  = new mongoose.Schema({})
+    var ThingSchema = new mongoose.Schema({})
+    ItemSchema.habtm('Thing', { setParent: false })
+    ThingSchema.habtm('Item', { setParent: true  })
+
+    ItemSchema.paths['things'].options.setParent.should.be.true
+    ThingSchema.paths['items'].options.setParent.should.be.true
+  });
+
   it('test presence of added methods to the MongooseArray', function() {
     var category = new Category(),
         post     = new Post();
