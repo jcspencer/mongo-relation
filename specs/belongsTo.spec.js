@@ -15,4 +15,8 @@ describe('belongsTo', function() {
     Tweet.schema.paths.author.instance.should.equal('ObjectID');
     Tweet.schema.paths.author.options.ref.should.equal('User');
   });
+
+  it('sets the required field', function() {
+    Tweet.schema.paths.author.isRequired.should.be.ok
+  });
 });
