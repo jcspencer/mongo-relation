@@ -5,6 +5,6 @@ var TweetSchema = new mongoose.Schema({
   body:  String
 });
 
-TweetSchema.belongsTo('User', { through: 'author' });
+TweetSchema.belongsTo('User', { through: 'author', required: true });
 
 module.exports = mongoose.model('Tweet', TweetSchema);
