@@ -6,5 +6,6 @@ var TweetSchema = new mongoose.Schema({
 });
 
 TweetSchema.belongsTo('User', { through: 'author', required: true });
+TweetSchema.habtm('Tag', { through: 'tags', setChild: false })
 
 module.exports = mongoose.model('Tweet', TweetSchema);

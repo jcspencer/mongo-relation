@@ -1,3 +1,13 @@
+- TODO: in a hasMany relationship the parent should not hold child ids
+- habtm dependent cannot delete or destroy
+- change 'shouldSetChild' to 'inverseOf: nil'
+- use async library
+- remove "this.schema.paths[this.pathName].options[this.type] = this.model;"
+- require callbacks for 'append' & 'delete'
+- abstract "if (child.constructor.modelName !== relationship.ref) {"
+- check if concat is correct
+- concat should save parent when necessary
+
 HasMany should not set the id on the parent document
 
     User.hasMany('Tweet');

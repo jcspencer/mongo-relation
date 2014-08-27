@@ -1,7 +1,7 @@
 {
   "name": "mongo-relation",
   "description": "Model relationships plugin for Mongoose",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "homepage": "https://github.com/JamesS237/mongo-relation/",
   "repository": {
     "type": "git",

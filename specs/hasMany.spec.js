@@ -129,7 +129,9 @@ describe('hasMany', function() {
                      { title: 'Blog tweet #2' } ]
 
       user.tweets.create(tweets, function(err, user, tweets) {
-        var find = user.tweets.find({}, function(err, newTweets) {
+        should.strictEqual(err, null);
+        var find = user.tweets.find({});
+        find.exec(function(err, newTweets) {
           should.strictEqual(err, null);
 
           find.should.be.an.instanceof(mongoose.Query);
