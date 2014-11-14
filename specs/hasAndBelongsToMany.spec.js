@@ -3,6 +3,9 @@ require('./spec_helper');
 var mongoose   = require('mongoose'),
     should     = require('should'),
     User       = require('./support/userModel'),
+    Pet        = require('./support/petModel')
+    Dog        = require('./support/dogModel')
+    Fish       = require('./support/fishModel')
     Post       = require('./support/postModel'),
     Category   = require('./support/categoryModel'),
     Tweet      = require('./support/tweetModel'),
@@ -100,7 +103,7 @@ describe('hasManyBelongsToMany', function() {
       });
     });
 
-    it('concates many instantiated child documents', function(done) {
+    it('concatenates many instantiated child documents', function(done) {
       var category = new Category(),
           posts    = [new Post(), new Post()];
 
@@ -164,35 +167,31 @@ describe('hasManyBelongsToMany', function() {
                        { title: 'Blog post #2' } ]
 
       category.posts.create(posts, function(err, category, posts){
-        var find = category.posts.find({})
+        var firstFind = category.posts.find({})
 
-        find.should.be.an.instanceof(mongoose.Query);
-        find._conditions.should.have.property('_id');
-        find._conditions.should.have.property('categories');
-        find._conditions._id['$in'].should.be.an.instanceof(Array);
+        firstFind.should.be.an.instanceof(mongoose.Query);
+        firstFind._conditions.should.have.property('_id');
+        firstFind._conditions.should.have.property('categories');
+        firstFind._conditions._id['$in'].should.be.an.instanceof(Array);
 
-        find.exec(function(err, newPosts){
+        firstFind.exec(function(err, newPosts){
           should.strictEqual(err, null);
 
-          var testFind = function(){
-            find.find({title: 'Blog post #1'}, function(err, otherPosts){
-              find._conditions.title.should.equal('Blog post #1');
-              find._conditions.should.have.property('_id');
-
-              otherPosts.should.have.length(1);
-              otherPosts[0].title.should.equal('Blog post #1');
-
-              done();
-            });
-          };
-
-          var count = newPosts.length;
           newPosts.should.have.length(2);
           newPosts.forEach(function(post){
             category.posts.should.containEql(post._id)
             post.should.be.an.instanceof(Post);
             post.categories.should.containEql(category._id);
-            --count || testFind();
+          });
+
+          var secondFind = firstFind.find({ title: 'Blog post #1' }, function(err, otherPosts){
+            secondFind._conditions.title.should.equal('Blog post #1');
+            secondFind._conditions.should.have.property('_id');
+
+            otherPosts.should.have.length(1);
+            otherPosts[0].title.should.equal('Blog post #1');
+
+            done();
           });
         });
       });
@@ -447,6 +446,125 @@ describe('hasManyBelongsToMany', function() {
             populatedTweet.tags.forEach(function(tag){
               tag.should.be.an.instanceof(Tag);
               --count || testSugar();
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+describe('with descriminators', function(){
+  var user, dog, fish;
+  beforeEach(function(done){
+    user = new User();
+    dog  = new Dog({ name: 'Maddie', date_of_birth: new Date('12/24/2005'), breed: 'Border Collie Mix' });
+    fish = new Fish({ name: 'Dory', date_of_birth: new Date('5/30/2003') });
+    user.save(done);
+  });
+
+  context('associating', function(){
+    describe('#create', function(){
+      it('creates the superclass', function(done){
+        user.pets.create({}, function(err, user, pet){
+          should(pet.__t).eql.undefined;
+          pet.should.be.an.instanceof(Pet);
+          done();
+        });
+      });
+
+      it('creates a subclass', function(done){
+        user.pets.create(dog, function(err, user, cDog){
+          should.strictEqual(err, null);
+          should(dog._id).eql(cDog._id);
+          should(dog.__t).eql('Dog');
+          should(dog.__t).eql(cDog.__t);
+          done();
+        });
+      });
+    });
+
+    describe('#append', function(){
+      it('appends an instantiated child document', function(done) {
+        user.pets.append(fish, function(err, fish){
+          should.strictEqual(err, null);
+          user.pets.should.containEql(fish._id);
+          should(fish.__t).eql('Fish');
+          done();
+        });
+      });
+    });
+
+    describe('#concat', function(){
+      it('concats a hertogenious set of child documents', function(done) {
+        user.pets.concat([fish, dog], function(err, pets){
+          should.strictEqual(err, null);
+
+          user.pets.should.containEql(fish._id);
+          should(pets[0].__t).eql('Fish');
+
+          user.pets.should.containEql(dog._id);
+          should(pets[1].__t).eql('Dog');
+          done();
+        });
+      });
+    });
+  });
+
+  context('already associated', function(){
+    beforeEach(function(done){
+      user.pets.concat([fish, dog], function(err){
+        user.save(done);
+      });
+    });
+
+    describe('#find', function(){
+      it('finds pets from the parent model with the correct type', function(done) {
+        user.pets.find({ _id: fish }).findOne(function(err, foundFish){
+          should(foundFish._id).eql(fish._id);
+          should(foundFish.__t).eql('Fish');
+
+          user.pets.find({ _id: dog }).findOne(function(err, foundDog){
+            should(foundDog._id).eql(dog._id);
+            should(foundDog.__t).eql('Dog');
+            done();
+          });
+        });
+      });
+    });
+
+    describe('#populate', function(){
+      it('populates pets from the parent model with the correct type', function(done) {
+        user.pets.populate(function(err, user){
+          should.strictEqual(err, null);
+          var foundFish, foundDog;
+
+          user.pets.forEach(function(pet){
+            if(pet.id == fish.id){ foundFish = pet };
+          });
+
+          should.exist(foundFish);
+          should(foundFish.__t).eql('Fish');
+
+          user.pets.forEach(function(pet){
+            if(pet.id == dog.id){ foundDog = pet };
+          });
+
+          should.exist(foundDog);
+          should(foundDog.__t).eql('Dog');
+
+          done();
+        });
+      });
+    });
+
+    describe('#delete', function(){
+      it('removes pet from the parent model', function(done) {
+        user.pets.delete(fish, function(err, user){
+          user.save(function(err, user){
+            User.findById(user.id, function(err, foundUser){
+              should(foundUser.pets).not.containEql(fish._id);
+              done();
             });
           });
         });
