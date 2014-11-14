@@ -28,7 +28,8 @@
     "node": ">= 0.2.0"
   },
   "dependencies": {
-    "mongoose": ">=3.0.0"
+    "mongoose": ">=3.0.0",
+    "async": "^0.9.0"
   },
   "devDependencies": {
     "mocha": "latest",

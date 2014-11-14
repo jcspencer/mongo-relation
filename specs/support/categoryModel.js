@@ -9,4 +9,6 @@ CategorySchema.belongsTo('User', { through: 'editor' });
 // should only delete the reference
 CategorySchema.habtm('Post', { dependent: 'delete' });
 
+CategorySchema.hasMany('Pet');
+
 module.exports = mongoose.model('Category', CategorySchema);
