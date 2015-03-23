@@ -11,5 +11,6 @@ userSchema.hasMany('Notification', { setParent: false, dependent: 'delete'  });
 userSchema.hasMany('Address',      { setParent: false, dependent: 'nullify' });
 userSchema.hasMany('Category',     { through: 'categories' });
 userSchema.habtm('Pet',            { setParent: false })
+userSchema.hasMany('Location',     { as: 'locateable', setParent: false, through: 'locations' })
 
 module.exports = mongoose.model('User', userSchema);

@@ -11,10 +11,11 @@ var mongoose     = require('mongoose')
   , Category     = require('./support/categoryModel')
   , Pet          = require('./support/petModel')
   , Dog          = require('./support/dogModel')
-  , Fish         = require('./support/fishModel');
+  , Fish         = require('./support/fishModel')
+  , Location     = require('./support/locationModel');
 
 describe('hasMany', function() {
-  describe('setup', function(){
+  describe('setup', function() {
     it('has hasMany on the path', function() {
       User.schema.paths.tweets.options.hasMany.should.equal('Tweet');
     });
@@ -27,8 +28,10 @@ describe('hasMany', function() {
       User.schema.paths.notifications.options.setParent.should.be.false
     });
   });
+});
 
-  describe('Child Relationship', function(){
+describe('hasMany', function() {
+  describe('Child Relationship', function() {
     it('instantiates one child document', function() {
       var user  = new User({}),
           tweet = { title: 'Easy relationships with mongoose-relationships' };
@@ -58,8 +61,10 @@ describe('hasMany', function() {
       });
     });
   });
+});
 
-  describe('Parent Relationship', function(){
+describe('hasMany', function() {
+  describe('Parent Relationship', function() {
     it('creates one child document', function(done) {
       var user  = new User(),
           tweet = { title: 'Easy relationships with mongoose-relationships' };
@@ -220,7 +225,7 @@ describe('hasMany', function() {
           User.findById(user._id).populate('tweets').exec(function(err, populatedUser){
             should.strictEqual(err, null);
 
-            var testSugar = function(){
+            var testSugar = function() {
               // Syntactic sugar
               user.tweets.populate(function(err, user){
                 should.strictEqual(err, null);
@@ -244,8 +249,243 @@ describe('hasMany', function() {
     });
   });
 
-  describe('Parent Relationship when setParent is false', function(){
-    describe('#create', function(){
+  describe('polymorphic relation', function() {
+    describe('relationship', function() {
+      it('knows when a relationship is polymorphic', function() {
+        should(User.schema.paths.locations).exist;
+        should(User.schema.paths.locations.options.as).equal('locateable');
+      });
+    });
+
+    describe('#create', function() {
+      it('creates a polymorphic child', function(done) {
+        var user  = new User(),
+            local = { place: "Ed's Happy Place" };
+
+        user.locations.create(local, function(err, user, local) {
+          should.strictEqual(err, null);
+
+          user.should.be.an.instanceof(User);
+          local.should.be.an.instanceof(Location);
+          local.place.should.equal("Ed's Happy Place");
+          local.locateable.should.equal(user._id);
+          local.locateable_type.should.equal('User');
+          User.findById(user._id, function(err, user){
+            should(user.locations).be.empty;
+            done();
+          });
+        });
+      });
+
+      it('creates many polymorphic children', function(done) {
+        var user      = new User(),
+            locations = [ { place: "Ed's Happy Place" },
+                          { place: "Ed's Safe Place" } ];
+
+        user.locations.create(locations, function(err, user, locations) {
+          should.strictEqual(err, null);
+
+          user.should.be.an.instanceof(User);
+          var count = locations.length;
+          locations.forEach(function(local){
+            local.should.be.an.instanceof(Location);
+            local.locateable.should.equal(user._id);
+            local.locateable_type.should.equal('User');
+            --count || done();
+          })
+        });
+      });
+    });
+
+    describe('#append', function() {
+      it('associates the child to the parent', function(done) {
+        var user  = new User(),
+            local = new Location();
+
+        user.locations.append(local, function(err, local) {
+          should.strictEqual(err, null);
+          local.locateable.should.eql(user._id);
+          local.locateable_type.should.eql('User');
+          done();
+        });
+      });
+    });
+
+    describe('#concat', function() {
+      it('concatenates many instantiated child documents', function(done) {
+        var user      = new User(),
+            locations = [ new Location(), new Location() ];
+
+        user.locations.concat(locations, function(err, locations) {
+          should.strictEqual(err, null);
+
+          var count = locations.length;
+          locations.forEach(function(local){
+            local.locateable.should.eql(user._id);
+            local.locateable_type.should.eql('User');
+            --count || done();
+          });
+        });
+      });
+    });
+
+    describe('#find', function() {
+      it('returns a Mongoose Query', function() {
+        var user = new User();
+
+        var find = user.locations.find();
+        should(find).be.an.instanceof(mongoose.Query);
+        should(find._conditions.locateable).eql(user._id);
+        should(find._conditions.locateable_type).eql('User');
+      });
+
+      it('takes query params', function() {
+        var user = new User();
+        var find = user.locations.find({ place: 'here' });
+        should(find._conditions.place).eql('here');
+      });
+
+      it('finds child documents', function(done) {
+        var find,
+            user      = new User(),
+            locations = [ {}, {} ];
+
+        user.locations.create(locations, function(err, user, locations) {
+          user.locations.find(function(err, foundLocations) {
+            should.strictEqual(err, null);
+
+            foundLocations.should.have.length(2);
+
+            var count = foundLocations.length;
+            foundLocations.forEach(function(local) {
+              local.should.be.an.instanceof(Location);
+              should(local.locateable).eql(user._id);
+              should(local.locateable_type).eql('User');
+              --count || done();
+            });
+          });
+        });
+      });
+
+      it('searching for children documents', function(done) {
+        var find,
+            user      = new User(),
+            locations = [ { place: 'Here' },
+                          { place: 'There' } ];
+
+        user.locations.create(locations, function(err, user, locations) {
+          find = user.locations.find({ place: 'There' });
+          find.exec(function(err, foundLocations) {
+            should.strictEqual(err, null);
+            foundLocations.should.have.length(1);
+            foundLocations[0].place.should.equal('There');
+            done();
+          });
+        });
+      });
+    });
+
+    describe('#delete', function() {
+      var user, locations, local;
+      beforeEach(function(done){
+        user = new User();
+        user.save(function(err){
+          user.locations.create([ { }, { } ], function(err, user, _locations){
+            locations = _locations;
+            local = locations[0];
+            done();
+          });
+        });
+      });
+
+      // tests do not have a polymorphic relationship with dependecy set
+      it.skip('deletes dependent child documents', function(done) {
+        user.locations.remove(local._id, function(err, user){
+          should.strictEqual(err, null);
+
+          Location.findById(local._id, function(err, found){
+            should.strictEqual(err, null);
+            should.not.exist(found);
+            done();
+          });
+        });
+      });
+
+      // tests do not have a polymorphic relationship with dependecy set
+      it.skip('allows you to pass in a whole model', function(done) {
+        var local = locations[0];
+        user.locations.remove(local, function(err, user){
+          should.strictEqual(err, null);
+
+          Location.findById(local._id, function(err, found){
+            should.strictEqual(err, null);
+            should.not.exist(found);
+            done();
+          });
+        });
+      });
+
+      it('returns an error when trying to delete a model that is not a child', function(done) {
+        var local = new Location();
+        local.save(function(err){
+          should.strictEqual(err, null);
+
+          user.locations.remove(local.id, function(err, user){
+            should.exist(err);
+            Location.findById(local._id, function(err, found){
+              should.exist(found);
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    // tests do not have a polymorphic relationship with nullify set
+    describe.skip('#nullifies', function() {
+      it('nullifies dependent child documents', function(done){
+        var user      = new User(),
+            addresses = [ {}, {} ];
+
+        user.addresses.create(addresses, function(err, user, addresses){
+          var addressOne = addresses[0];
+          var addressTwo = addresses[1];
+          user.addresses.remove(addressOne._id, function(err, user){
+            should.strictEqual(err, null);
+
+            user.addresses.should.have.length(0);
+
+            Address.findById(addressOne._id, function(err, address){
+              should.strictEqual(err, null);
+              should.not.exist(address.user);
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    // has not been defined
+    describe.skip('#populate', function() {
+      it('returns an error', function(done){
+        var user          = new User(),
+            notifications = [ {}, {} ];
+
+        user.notifications.create(notifications, function(err, user, notifications){
+          user.save(function(err, user){
+            user.notifications.populate(function(err, user){
+              err.should.be.an.instanceof(Error);
+              err.message.should.eql('Cannot populate when setParent is false. Use #find.')
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  describe('Parent Relationship when setParent is false', function() {
+    describe('#create', function() {
       it('creates one child document', function(done) {
         var user         = new User(),
             notification = { message: 'Check out new relationships!' };
@@ -310,7 +550,7 @@ describe('hasMany', function() {
       });
     });
 
-    describe('#append', function(){
+    describe('#append', function() {
       it('associates the child to the parent', function(done) {
         var user         = new User(),
             notification = new Notification();
@@ -334,7 +574,7 @@ describe('hasMany', function() {
       });
     });
 
-    describe('#concat', function(){
+    describe('#concat', function() {
       it('concatenates many instantiated child documents', function(done) {
         var user          = new User(),
             notifications = [ new Notification(), new Notification() ];
@@ -433,7 +673,7 @@ describe('hasMany', function() {
       });
     });
 
-    describe('#delete', function(){
+    describe('#delete', function() {
       it('deletes dependent child documents', function(done) {
         var user          = new User(),
             notifications = [ { message: 'Blog tweet #1' },
@@ -454,7 +694,7 @@ describe('hasMany', function() {
       });
     });
 
-    describe('#nullifies', function(){
+    describe('#nullifies', function() {
       it('nullifies dependent child documents', function(done){
         var user      = new User(),
             addresses = [ {}, {} ];
@@ -477,7 +717,7 @@ describe('hasMany', function() {
       });
     });
 
-    describe('#populate', function(){
+    describe('#populate', function() {
       it('returns an error', function(done){
         var user          = new User(),
             notifications = [ {}, {} ];
@@ -496,7 +736,7 @@ describe('hasMany', function() {
   });
 });
 
-describe('with descriminators', function(){
+describe('with descriminators', function() {
   var category, dog, fish;
   beforeEach(function(done){
     dog  = new Dog({ name: 'Maddie', date_of_birth: new Date('12/24/2005'), breed: 'Border Collie Mix' });
@@ -505,8 +745,8 @@ describe('with descriminators', function(){
     category.save(done);
   });
 
-  context('associating', function(){
-    describe('#create', function(){
+  context('associating', function() {
+    describe('#create', function() {
       it('creates the superclass', function(done){
         category.pets.create({}, function(err, category, pet){
           should(pet.__t).eql.undefined;
@@ -527,7 +767,7 @@ describe('with descriminators', function(){
       });
     });
 
-    describe('#append', function(){
+    describe('#append', function() {
       it('appends an instantiated child document', function(done) {
         category.pets.append(fish, function(err, fish){
           should.strictEqual(err, null);
@@ -538,7 +778,7 @@ describe('with descriminators', function(){
       });
     });
 
-    describe('#concat', function(){
+    describe('#concat', function() {
       it('concats a hertogenious set of child documents', function(done) {
         category.pets.concat([fish, dog], function(err, pets){
           should.strictEqual(err, null);
@@ -554,14 +794,14 @@ describe('with descriminators', function(){
     });
   });
 
-  context('already associated', function(){
+  context('already associated', function() {
     beforeEach(function(done){
       category.pets.concat([fish, dog], function(err){
         category.save(done);
       });
     });
 
-    describe('#find', function(){
+    describe('#find', function() {
       it('finds pets from the parent model with the correct type', function(done) {
         category.pets.find({ _id: fish }).findOne(function(err, foundFish){
           should(foundFish._id).eql(fish._id);
@@ -576,7 +816,7 @@ describe('with descriminators', function(){
       });
     });
 
-    describe('#populate', function(){
+    describe('#populate', function() {
       it('populates pets from the parent model with the correct type', function(done) {
         category.pets.populate(function(err, category){
           should.strictEqual(err, null);
@@ -601,7 +841,7 @@ describe('with descriminators', function(){
       });
     });
 
-    describe('#delete', function(){
+    describe('#delete', function() {
       it('removes pet from the parent model', function(done) {
         category.pets.delete(fish, function(err, category){
           category.save(function(err, user){

@@ -4,7 +4,8 @@ var mongoose = require('mongoose'),
     should   = require('should'),
     User     = require('./support/userModel'),
     Tweet    = require('./support/tweetModel'),
-    Tag      = require('./support/tagModel');
+    Tag      = require('./support/tagModel'),
+    Location = require('./support/locationModel');
 
 describe('belongsTo', function() {
   it('child schema belongsTo path', function() {
@@ -18,5 +19,15 @@ describe('belongsTo', function() {
 
   it('sets the required field', function() {
     Tweet.schema.paths.author.isRequired.should.be.ok
+  });
+});
+
+describe('belongsTo, polymorphic true', function() {
+  it('sets the correct paths', function() {
+    should(Location.schema.paths.locateable).exist
+    should(Location.schema.paths.locateable.instance).equal('ObjectID')
+
+    should(Location.schema.paths.locateable_type).exist
+    should(Location.schema.paths.locateable_type.instance).equal('String')
   });
 });
