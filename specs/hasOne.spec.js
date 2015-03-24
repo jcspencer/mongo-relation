@@ -8,12 +8,12 @@ var mongoose = require('mongoose'),
     Post     = require('./support/postModel');
 
 describe('hasOne', function() {
-  it('adds the belongsTo path to the child schema', function() {
-    Tweet.schema.paths.author.options.belongsTo.should.equal('User');
+  it('adds the belongsTo path to the child schema for author', function() {
+    Tweet.schema.paths.author.options.ref.should.equal('User');
   });
 
-  it('adds the belongsTo path to the child schema', function() {
-    Post.schema.paths.editor.options.belongsTo.should.equal('User');
+  it('adds the belongsTo path to the child schema for editor', function() {
+    Post.schema.paths.editor.options.ref.should.equal('User');
   });
 
   it('adds the hasOne path to the parent schema', function() {

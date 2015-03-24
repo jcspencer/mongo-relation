@@ -4,8 +4,8 @@ var PostSchema = new mongoose.Schema({
   title: String
 });
 
-PostSchema.belongsTo('User', { through: 'editor' });
-PostSchema.belongsTo('User', { through: 'author' });
+PostSchema.belongsTo('editor', { modelName: 'User' });
+PostSchema.belongsTo('author', { through: 'User' });
 
 // should not delete the reference
 PostSchema.habtm('Category');
