@@ -1,241 +1,172 @@
-Mongoose Relationships
-======================
+# Mongoose Relationships
 
-_... because sometimes embedded documents aren't enough._
+A plugin for [Mongoose](http://github.com/learnboost/mongoose) for model relationships and helpers.
 
-A plugin for [Mongoose](http://github.com/learnboost/mongoose) adding a simple syntax for model relationships and providing useful helpers to empower them.
-
-This is an early release with limited functionalities. I'm looking for feedback on the API and features (been exploring a few different solutions, nothing's impossible!).
-
-I'm inspiring from various libraries in Ruby I've used throughout the years. Might not be your cup of tea.
-
-Goals
------
+## Goals
 
 * Be unobtrusive and compliant with the ways of Mongoose (coding style, testing, API).
 
-Usage
-=====
-
-First, `npm install mongo-relation`.
-
-Add relationships to your schema through either `hasMany`, `belongsTo` or `habtm` (has and belongs to many).
-
-* {String} `ModelName` is the name of the Model.
-* {Object} `options`
-    * {String} `through` if you want to specify what path to use for the relationship. Else the path will be created for you by pluralizing the `ModelName`.
-    * {String} `dependent` takes either "delete" or "nullify" and indicated what to do when the element is removed from the parent's `through` array.
+## Usage
 
 ```javascript
 var mongoose = require('mongoose');
 require('mongo-relation');
-
-YourSchema.hasMany('ModelName', {through: 'PathName', dependent: 'delete|nullify'});
 ```
 
-It's good to take note that for "has and belongs to many" type relationships, the dependent option only deletes the reference, not the actual referenced document.
-
-Examples
---------
-
-One to Many
------------
+### One to Many (belongsTo/hasMany)
 
 ```javascript
-UserSchema.hasMany('Post', {dependent: 'delete'});
+var postSchema = new mongoose.Schema({});
+postSchema.hasMany('comments', { dependent: 'destroy|delete|nullify' });
+var Post = mongoose.model('Post', postSchema);
 
-// uses the 'author' path for the relation
-PostSchema.belongsTo('User', {through: 'author'});
+var commentSchema = new mongoose.Schema({});
+commentSchema.belongsTo('post');
+var Comment = mongoose.model('Comment', commentSchema);
 ```
 
-Has and Belongs to Many
------------------------
+#### create
+
+Creates a child document associated to the parent.
+
+* {Object|Array} __objs__ child document(s) // simple objects
+* {Function} __callback__ callback(err, docs)
+  * {Error} __err__ error from mongoose
+  * {Document|Array} __docs__ Array or single persisted model
 
 ```javascript
-PostSchema.habtm('Category');
-CategorySchema.habtm('Post');
-```
+var postSchema = new mongoose.Schema({ content: String });
+postSchema.hasMany('comments', { dependent: 'destroy|delete|nullify' });
 
-Methods
-=======
+var commentSchema = new mongoose.Schema({ content: String });
+commentSchema.belongsTo('post');
 
-Every `Document` that has their `Schema` plugged with `mongo-relation` has access to the following methods.
+var post = new Post({ content: "Relations are helpful." });
 
-__Let's use this starting point:__
-
-```javascript
-var mongoose = require('mongoose');
-require('mongo-relation');
-
-// UserSchema stores an Array of ObjectIds for posts
-var UserSchema = new mongoose.Schema({
-    posts: [mongoose.Schema.ObjectId]
+post.comments.create({ content: "I agree!" }, function(err, comment){
+  console.assert(comment.content == "I agree!", "comment belongsTo post.");
+  console.assert(post._id == comment.post, "comment belongsTo post.");
+  console.assert(!comment.isNew, "comment has been saved.");
+  console.assert(comment instanceOf Comment, "comment is a Comment.");
 });
 
-// PostSchema stores an ObjectId for the author
-var PostSchema = new mongoose.Schema({
-    title  : String
-  , author : mongoose.Schema.ObjectId
-});
-
-// Attach the plugin
-UserSchema.hasMany('Post');
-PostSchema.belongsTo('User', {through: 'author'});
-
-var User = mongoose.model('User', UserSchema)
-  , Post = mongoose.model('Post', PostSchema);
-```
-
-create
-------
-
-Takes care of creating the child document and the links between it and the parent document.
-
-* {Object|Array} `objs` representation of the child document(s) to create
-* {Function} `callback` (optional) function returning an error if any, the new parent document and the created post(s)
-
-__Example:__
-
-```javascript
-var user = new User();
-
-user.posts.create({
-  title: "Mongoose, now with added love through relationships!"
-}, function(err, user, post){
-  // user.posts.length === 1
-  // post.title === "Mongoose, now with added love through relationships!"
-});
-
-// Using an `Array`
-user.posts.create([
-    { title: "Not too imaginative post title" }
-  , { title: "... a tad more imaginative post title" }
-], function(err, user, posts){
-  // user.posts.length === 3
-  // posts.length == 2
-  // posts[0] instanceof Post
+post.comments.create({ content: "+1" }, { content: "Yup!" }, function(err, comments){
+  console.assert(comments.length == 2, "created two documents.");
+  comments.forEach(function (comment) {
+    console.assert(post._id == comment.post, "comment belongsTo post.");
+    console.assert(!comment.isNew, "comment has been saved.");
+    console.assert(comment instanceOf Comment, "comment is a Comment.");
+  });
 });
 ```
 
-build
------
+#### build
 
-Instantiates a child document, appends its reference to the parent document and returns the child document. _Does not save anything._
+Instantiates children/a child document(s) with the appropriate associations.
 
-* {Object} `obj` representation of the child document(s) to create
-
-__Example:__
+* {Object|Array} __objs__ child document(s) // simple objects
 
 ```javascript
-var post = user.posts.build({title: "Just instantiating me"});
-// post.author === user._id
-```
+var comment = post.comments.build({comment: "First!"});
+console.assert(comment.post == post._id, "associated");
+console.assert(comment.isNew, "not saved");
 
-append
-------
-
-Allows pushing of an already existing document into the parent document. Creates all the right references.
-
-Works with either a saved or unsaved document.
-
-The parent document is not saved, you'll have to do that yourself.
-
-* {Document} `child` document to push.
-* {Function} `callback` called with an error if any and the child document w/ references.
-
-__Example:__
-
-```javascript
-var post = new Post();
-
-user.posts.append(post, function(err, post){
-  // post.author === user._id
-  // user.posts.id(post._id) === post._id
+var post = new Post({ content: "Relations are easy." });
+var comments = post.comments.build({ comment: "First!" }, { comment: "LOL" });
+console.assert(comments.length == 2);
+comments.forEach(function (comment) {
+  console.assert(comment.post === post._id, "associated");
+  console.assert(comment.isNew, "not saved");
 });
 ```
 
-concat
-------
+#### concat
 
-Just like `Array.prototype.concat`, it appends an `Array` to another `Array`
+Associates & saves initialized document(s) with the appropriate associations.
 
-* {Document} `child` document to push.
-* {Function} `callback` called with an error if any and the child document w/ references.
-
-__Example:__
-
-```javascript
-var posts = [new Post(), new Post()];
-
-user.posts.concat(posts, function(err, posts){
-  // `posts` is an `Array` of `Document`
-  // each have its author set to `user._id`
-});
-```
-
-find
-----
-
-It's the same as a `Mongoose.Query`. Only looks through the children documents.
-
-See [Mongoose.Query](http://mongoosejs.com/docs/finding-documents.html) for the params
-
-__Example:__
+* {Document|Array} __docs__ documents to associate. // mongoose documents
+* {Function} __callback__ callback(err, docs)
+  * {Error} __err__ error from mongoose
+  * {Document|Array} __docs__ Array or single persisted document(s)
 
 ```javascript
-user.posts.find({title: "Not too imaginative post title"}, function(err, posts){
-  // posts.length === 1
-  // posts[0].author == user._id
-  // posts[0].title == "Not too imaginative post title";
+
+var post = new Post({ content: "Concating is great." });
+var comment = new Comment();
+post.comments.concat(comment, function(err, comment){
+  console.assert(comment.post === post._id, "associated");
+  console.assert(!comment.isNew, "saved");
 });
+
+var comments = [new Comment(), new Comment()];
+post.comments.concat(comments, function(err, comments){
+  console.assert(comments.length == 2);
+  comments.forEach(function (comment) {
+    console.assert(comment.post === post._id, "associated");
+    console.assert(!comment.isNew, "saved");
+  });
+});
+
+// existing doc
+
+var comment = new Comment();
+comment.save(function (err, comment) {
+  post.comments.concat(comment, function(err, comment){
+	console.assert(comment.post === post._id, "associated");
+	console.assert(!comment.isNew, "saved");
+  });
+});
+
 ```
 
-populate
---------
 
-Some sugary syntax to populate the parent document's child documents.
+#### append
+Sugar for #concat
 
-* {Array} `fields` (optional) you want to get back with each child document
-* {Function} `callback` called with an error and the populate document
 
-__Example:__
+#### find
+
+Inject params for the association, then fallback on _Model.find_
+
+- {Object} __docs__ (optional) query conditions
+- {String} __fields__ (optional) fields to populate
+- {Object} __options__ (optional) query options
+- {String} __callback__ (optional) callback(err, docs)
+  - {Error} __err__ error from mongoose
+  - {Document} __doc__ Found document
+
 
 ```javascript
-user.posts.populate(function(err, user){
-  // user.posts.length === 2
+var postOne = new Post({ content: "Find all the things." })
+  , postTwo = new Post({ content: "Found all the things." });
+
+postOne.comments.create({ content: "+1" }, function(err){
+  postTwo.comments.create({ content: "+1" }, function(err){
+
+    postOne.comments.find({ comment: "+1" }, function(err, comments){
+      console.assert(comments.length == 1);
+      console.assert(comments[0].post == postOne._id, "found the correct comment");
+
+      var criteria = postTwo.comments.find({ comment: "+1" });
+      console.assert(criteria._conditions.post == postTwo._id, "The association has been added to the query.");
+      console.assert(criteria._conditions.comment == "+1", "keeps original query.");
+
+      criteria.exec(function(err, comments){
+        console.assert(comments.length == 1);
+        console.assert(comments[0].post == postTwo._id, "found the correct comment");
+      });
+    });
+  });
 });
 ```
-
-remove
-------
-
-Depending on the `dependent` option, it'll either delete or nullify the
-
-* {ObjectId} `id` of the document to remove
-* {Function} `callback` (optional) called after the deed is done with an error if any and the new parent document.
-
-__Example:__
-
-```javascript
-user.posts.remove(user.posts[0]._id, function(err, user){
-  // The post will either be delete or have its `author` field nullified
-});
-```
-
-Testing
-=======
-
-Mongo-Relation uses [Mocha](http://github.com/visionmedia/mocha) with [Should](http://github.com/visionmedia/should.js). Tests are located in `./test` and should be ran with the `make test` command.
 
 Todo
 ====
 
-* One to one relationships
-* Make sure I didn't break anything with Mongoose
-
-Contribute
-==========
-
-* Pick up any of the items above & send a pull request (w/ __passing__ tests please)
-* Discuss the API / features in the [Issues](http://github.com/JamesS237/mongo-relation/issues)
-* Use it and report bugs in the [Issues](http://github.com/JamesS237/mongo-relation/issues) (w/ __failing__ tests please)
+* Document belongsTo
+* add touch to hasMany
+* add touch to belongsTo
+* Refactor hasAndBelongsToMany
+* Document hasAndBelongsToMany
+* Add embedsMany
+* Add emdedsOne
