@@ -2,7 +2,8 @@ require('./spec_helper');
 
 var mongoose = require('mongoose')
   , async    = require('async')
-  , should   = require('should');
+  , should   = require('should')
+  , uuid     = require('node-uuid');
 
 describe('hasMany without options', function(){
   var userSchema, User, user, widgetSchema, Widget, widget;
@@ -555,6 +556,31 @@ describe('hasMany discriminated', function() {
             });
           });
         });
+      });
+    });
+  });
+});
+
+describe('#__touch', function(){
+  var postSchema, Post, post;
+
+  before(function(){
+    postSchema = mongoose.Schema({ body: String });
+    postSchema.hasMany('comments');
+    Post = mongoose.model('Post_' + uuid.v4(), postSchema);
+  });
+
+  it('has a method called touch', function(){
+    should(postSchema.methods.__touch).be.a.Function;
+  });
+
+  it('saves the document when called', function(done){
+    post = new Post;
+    post.save(function (err) {
+      var version = post.__v;
+      post.__touch(function(err){
+        should(post.__v).not.eql(version);
+        done();
       });
     });
   });

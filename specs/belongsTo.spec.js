@@ -39,7 +39,7 @@ describe('belongsTo', function() {
     describe('custom name', function() {
       before(function() {
         partSchema = new mongoose.Schema({});
-        partSchema.belongsTo('owner', { modelName: 'Widget', required: true });
+        partSchema.belongsTo('owner', { modelName: 'Widget' });
         schema = mongoose.model('Part_' + uuid.v4(), partSchema).schema;
         subject = schema.paths.owner;
       });
@@ -87,6 +87,10 @@ describe('belongsTo', function() {
         it('knows it is a part of a polymorphic relationship', function() {
           should(subject.options.polymorphic).be.true;
         });
+
+        it('passes through options', function() {
+          should(subject.isRequired).be.true;
+        });
       });
 
       describe('Type half', function() {
@@ -102,6 +106,40 @@ describe('belongsTo', function() {
 
         it('passes through options', function() {
           should(subject.isRequired).be.true;
+        });
+      });
+    });
+
+    describe('touch:true', function(done) {
+      var messageSchema, Message, message
+        , mailboxSchema, Mailbox, mailbox;
+
+      before(function(done) {
+        messageSchema = new mongoose.Schema({ });
+        messageSchema.belongsTo('mailbox', { touch: true });
+        Message = mongoose.model('Message', messageSchema);
+
+        mailboxSchema = new mongoose.Schema({ });
+        mailboxSchema.hasMany('messages');
+
+        Mailbox = mongoose.model('Mailbox', mailboxSchema);
+        mailbox = new Mailbox();
+        mailbox.save(function(err){
+          mailbox.messages.create({ }, function(err, msg){
+            message = msg;
+            done();
+          });
+        });
+      });
+
+      it('touches the parent document before save', function(done) {
+        var oldVersion = mailbox.__v;
+        message.save(function(err){
+          should.strictEqual(err, null);
+          Mailbox.findById(mailbox._id, function(err, mailbox){
+            should(mailbox.__v).not.eql(oldVersion);
+            done();
+          });
         });
       });
     });
