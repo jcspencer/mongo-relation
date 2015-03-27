@@ -1,16 +1,16 @@
 require('./spec_helper');
 
-var mongoose   = require('mongoose'),
-    should     = require('should'),
-    User       = require('./support/userModel'),
-    Pet        = require('./support/petModel')
-    Dog        = require('./support/dogModel')
-    Fish       = require('./support/fishModel')
-    Post       = require('./support/postModel'),
-    Category   = require('./support/categoryModel'),
-    Tweet      = require('./support/tweetModel'),
-    Tag        = require('./support/tagModel'),
-    BookSchema = new mongoose.Schema({});
+var mongoose    = require('mongoose'),
+    should      = require('should'),
+    TwitterUser = require('./support/twitterUserModel'),
+    Pet         = require('./support/petModel')
+    Dog         = require('./support/dogModel')
+    Fish        = require('./support/fishModel')
+    TwitterPost = require('./support/twitterPostModel'),
+    Category    = require('./support/categoryModel'),
+    Tweet       = require('./support/tweetModel'),
+    Tag         = require('./support/tagModel'),
+    BookSchema  = new mongoose.Schema({});
 
 describe('hasManyBelongsToMany', function() {
   describe('valid options', function() {
@@ -28,16 +28,16 @@ describe('hasManyBelongsToMany', function() {
   });
 
   it('has habtm on the path', function() {
-    Category.schema.paths.posts.options.habtm.should.equal('Post');
+    Category.schema.paths.posts.options.habtm.should.equal('TwitterPost');
   });
 
   it('test child schema habtm path', function() {
-    Post.schema.paths.categories.options.habtm.should.equal('Category');
+    TwitterPost.schema.paths.categories.options.habtm.should.equal('Category');
   });
 
   it('test presence of added methods to the MongooseArray', function() {
     var category = new Category(),
-        post     = new Post();
+        post     = new TwitterPost();
 
     category.posts.create.should.be.a.Function;
     post.categories.create.should.be.a.Function;
@@ -65,7 +65,7 @@ describe('hasManyBelongsToMany', function() {
 
       var built = category.posts.build(post);
 
-      built.should.be.an.instanceof(Post);
+      built.should.be.an.instanceof(TwitterPost);
       built.categories.should.containEql(category._id);
       category.posts.should.containEql(built._id);
 
@@ -82,7 +82,7 @@ describe('hasManyBelongsToMany', function() {
 
       var count = category.posts.length;
       built.forEach(function(post){
-        post.should.be.an.instanceof(Post);
+        post.should.be.an.instanceof(TwitterPost);
         post.categories.should.containEql(category._id);
         category.posts.should.containEql(post._id);
         --count || done();
@@ -91,7 +91,7 @@ describe('hasManyBelongsToMany', function() {
 
     it('appends an instantiated child document', function(done) {
       var category = new Category(),
-          post     = new Post();
+          post     = new TwitterPost();
 
       category.posts.append(post, function(err, post){
         should.strictEqual(err, null);
@@ -105,7 +105,7 @@ describe('hasManyBelongsToMany', function() {
 
     it('concatenates many instantiated child documents', function(done) {
       var category = new Category(),
-          posts    = [new Post(), new Post()];
+          posts    = [new TwitterPost(), new TwitterPost()];
 
       category.posts.concat(posts, function(err, posts){
         should.strictEqual(err, null);
@@ -131,7 +131,7 @@ describe('hasManyBelongsToMany', function() {
 
         category.posts[0].should.equal(post._id);
 
-        post.should.be.an.instanceof(Post);
+        post.should.be.an.instanceof(TwitterPost);
         post.title.should.equal('Easy relationships with mongoose-relationships')
         post.categories.should.containEql(category._id);
 
@@ -154,7 +154,7 @@ describe('hasManyBelongsToMany', function() {
         var count = posts.length;
         posts.forEach(function(post){
           category.posts.should.containEql(post._id)
-          post.should.be.an.instanceof(Post);
+          post.should.be.an.instanceof(TwitterPost);
           post.categories.should.containEql(category._id);
           --count || done();
         });
@@ -174,22 +174,22 @@ describe('hasManyBelongsToMany', function() {
         firstFind._conditions.should.have.property('categories');
         firstFind._conditions._id['$in'].should.be.an.instanceof(Array);
 
-        firstFind.exec(function(err, newPosts){
+        firstFind.exec(function(err, newTwitterPosts){
           should.strictEqual(err, null);
 
-          newPosts.should.have.length(2);
-          newPosts.forEach(function(post){
+          newTwitterPosts.should.have.length(2);
+          newTwitterPosts.forEach(function(post){
             category.posts.should.containEql(post._id)
-            post.should.be.an.instanceof(Post);
+            post.should.be.an.instanceof(TwitterPost);
             post.categories.should.containEql(category._id);
           });
 
-          var secondFind = firstFind.find({ title: 'Blog post #1' }, function(err, otherPosts){
+          var secondFind = firstFind.find({ title: 'Blog post #1' }, function(err, otherTwitterPosts){
             secondFind._conditions.title.should.equal('Blog post #1');
             secondFind._conditions.should.have.property('_id');
 
-            otherPosts.should.have.length(1);
-            otherPosts[0].title.should.equal('Blog post #1');
+            otherTwitterPosts.should.have.length(1);
+            otherTwitterPosts[0].title.should.equal('Blog post #1');
 
             done();
           });
@@ -211,8 +211,8 @@ describe('hasManyBelongsToMany', function() {
           category.posts.should.not.containEql(post._id);
           category.posts.should.have.length(1);
 
-          // Post, should still exist, this is HABTM
-          Post.findById(post._id, function(err, post){
+          // TwitterPost, should still exist, this is HABTM
+          TwitterPost.findById(post._id, function(err, post){
             should.strictEqual(err, null);
 
             should.exist(post);
@@ -260,19 +260,19 @@ describe('hasManyBelongsToMany', function() {
               category.posts.populate(function(err, category){
                 should.strictEqual(err, null);
 
-                var count = category.posts.length;
                 category.posts.forEach(function(post){
-                  post.should.be.an.instanceof(Post);
-                  --count || done();
+                  post.should.be.an.instanceof(TwitterPost);
                 });
+
+                done();
               });
             };
 
             var count = populatedCategory.posts.length;
             populatedCategory.posts.forEach(function(post){
-              post.should.be.an.instanceof(Post);
-              --count || testSugar();
+              post.should.be.an.instanceof(TwitterPost);
             });
+            testSugar();
           });
         });
       });
@@ -337,7 +337,7 @@ describe('hasManyBelongsToMany', function() {
     });
 
     it('creates one child document', function(done) {
-      var tweet = new Tweet({ author: new User() }),
+      var tweet = new Tweet({ author: new TwitterUser() }),
           tag = { name: 'Easy' };
 
       tweet.tags.create(tag, function(err, tweet, tag){
@@ -356,7 +356,7 @@ describe('hasManyBelongsToMany', function() {
     });
 
     it('creates many child documents', function(done){
-      var tweet = new Tweet({ author: new User()});
+      var tweet = new Tweet({ author: new TwitterUser()});
           tags    = [ { name: 'Blog tag #1' },
                       { name: 'Blog tag #2' } ]
 
@@ -378,7 +378,7 @@ describe('hasManyBelongsToMany', function() {
     });
 
     it('finds children documents', function(done){
-      var tweet = new Tweet({ author: new User()}),
+      var tweet = new Tweet({ author: new TwitterUser()}),
           tags  = [ { name: 'Blog tag #1' },
                     { name: 'Blog tag #2' } ]
 
@@ -420,7 +420,7 @@ describe('hasManyBelongsToMany', function() {
     });
 
     it('populations of path', function(done){
-      var tweet = new Tweet({ author: new User() }),
+      var tweet = new Tweet({ author: new TwitterUser() }),
            tags = [ { name: 'Blog tag #1' },
                     { name: 'Blog tag #2' } ];
 
@@ -457,7 +457,7 @@ describe('hasManyBelongsToMany', function() {
 describe('with descriminators', function(){
   var user, dog, fish;
   beforeEach(function(done){
-    user = new User();
+    user = new TwitterUser();
     dog  = new Dog({ name: 'Maddie', date_of_birth: new Date('12/24/2005'), breed: 'Border Collie Mix' });
     fish = new Fish({ name: 'Dory', date_of_birth: new Date('5/30/2003') });
     user.save(done);
@@ -562,8 +562,8 @@ describe('with descriminators', function(){
       it('removes pet from the parent model', function(done) {
         user.pets.delete(fish, function(err, user){
           user.save(function(err, user){
-            User.findById(user.id, function(err, foundUser){
-              should(foundUser.pets).not.containEql(fish._id);
+            TwitterUser.findById(user.id, function(err, foundTwitterUser){
+              should(foundTwitterUser.pets).not.containEql(fish._id);
               done();
             });
           });

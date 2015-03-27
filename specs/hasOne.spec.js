@@ -1,66 +1,64 @@
 require('./spec_helper');
 
 var mongoose = require('mongoose'),
-    should   = require('should'),
-    User     = require('./support/userModel'),
-    Tweet    = require('./support/tweetModel'),
-    Tag      = require('./support/tagModel'),
-    Post     = require('./support/postModel');
+    should   = require('should');
 
 describe('hasOne', function() {
-  it('adds the belongsTo path to the child schema for author', function() {
-    Tweet.schema.paths.author.options.ref.should.equal('User');
+  var schema, model, subject, Publisher;
+  before(function(){
+    schema = new mongoose.Schema({})
+    schema.belongsTo('manual');
+    Publisher = mongoose.model('Publisher', schema);
+
+    schema = new mongoose.Schema({});
+    schema.hasOne('publisher');
+    model = mongoose.model('Manual', schema);
   });
 
-  it('adds the belongsTo path to the child schema for editor', function() {
-    Post.schema.paths.editor.options.ref.should.equal('User');
-  });
+  context('schema', function(){
+    before(function(){
+      subject = model.schema;
+    });
 
-  it('adds the hasOne path to the parent schema', function() {
-    User.schema.paths.post.options.hasOne.should.equal('Post');
-  });
-
-  it.skip('has a create function on the association', function() {
-    var user = new User();
-    user.post.create.should.be.a.Function;
-  });
-
-  it.skip('creates a child document', function(done){
-    var user = new User(),
-        post = { title: 'Deep thinking, by a mongoose.' };
-
-    user.post.create(post, function(err, user, post){
-      should.strictEqual(err, null);
-
-      user.should.be.an.instanceof(user);
-      post.should.be.an.instanceof(post);
-
-      user.post.should.eql(post._id);
-      post.editor.should.equal(user._id);
-
-      post.title.should.equal('Deep thinking, by a mongoose.');
-      done();
+    it('adds a virtual to the model', function(){
+      should(subject.virtuals.publisher).not.equal(undefined);
     });
   });
 
-  it.skip('finds the child document', function(done){
-    var user = new User(),
-        post = { title: 'Deep thinking, by a mongoose.'};
+  context('instance', function(){
+    var criteria;
 
-    user.post.create(post, function(err, user, post){
-      var find = user.post.find(function(err, newPost){
-        should.strictEqual(err, null);
+    before(function(){
+      subject = new model();
+      criteria = subject.publisher;
+    });
 
-        find.should.be.an.instanceof(mongoose.Query);
-        find._conditions.should.have.property('_id');
-        find._conditions.should.have.property('editor');
-        find.op.should.equal('findOne');
+    it('returns a criteria when called with no args', function(){
+      should(criteria).be.instanceOf(mongoose.Query);
+    });
 
-        user.post.should.equal(newPost._id);
+    it('looks for the corrct path', function(){
+      should(criteria._conditions).have.key('manual');
+    });
 
-        newPost.should.be.an.instanceof(post);
-        newPost.editor.should.eql(user._id);
-        done();
+    it('looks by the correct id', function(){
+      should(criteria._conditions.manual).eql(subject._id);
+    });
+
+    it('looks on the correct model', function(){
+      should(criteria.model.modelName).eql('Publisher');
+    });
+
+    context('finding', function(){
+      before(function(done){
+        new Publisher({ manual: subject._id }).save(done);
+      });
+
+      it('finds the correct document', function(done){
+        criteria.exec(function(err, publisher){
+          should(publisher.manual).eql(subject._id);
+          done();
+        });
       });
     });
   });

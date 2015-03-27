@@ -10,7 +10,7 @@ describe('belongsTo', function() {
 
   before(function() {
     var partSchema = new mongoose.Schema({});
-    partSchema.belongsTo('Widget');
+    partSchema.belongsTo('widget');
     schema = mongoose.model('Part_' + uuid.v4(), partSchema).schema;
     subject = schema.paths.widget;
   });
@@ -56,7 +56,7 @@ describe('belongsTo', function() {
     describe('required', function() {
       before(function() {
         partSchema = new mongoose.Schema({});
-        partSchema.belongsTo('Widget', { required: true });
+        partSchema.belongsTo('widget', { required: true });
         schema = mongoose.model('Part_' + uuid.v4(), partSchema).schema;
         subject = schema.paths.widget;
       });
@@ -69,7 +69,7 @@ describe('belongsTo', function() {
     describe('polymorphic', function() {
       before(function() {
         var partSchema = new mongoose.Schema({});
-        partSchema.belongsTo('Assemblable', { polymorphic: true, required: true });
+        partSchema.belongsTo('assemblable', { polymorphic: true, required: true });
         schema = mongoose.model('Part_' + uuid.v4(), partSchema).schema;
       });
 
