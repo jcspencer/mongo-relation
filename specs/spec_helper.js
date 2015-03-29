@@ -1,5 +1,4 @@
-var mongoose      = require('mongoose'),
-    relationships = require('../');
+var mongoose = require('../')(require('mongoose'));
 
 var resetDb = function(next){
   mongoose.connection.db.dropDatabase(next);
