@@ -69,7 +69,7 @@ describe('belongsTo', function() {
     describe('polymorphic', function() {
       before(function() {
         var partSchema = new mongoose.Schema({});
-        partSchema.belongsTo('assemblable', { polymorphic: true, required: true });
+        partSchema.belongsTo('assemblable', { polymorphic: true, required: true, enum: [ 'Bed', 'Dresser', 'Chair' ] });
         schema = mongoose.model('Part_' + uuid.v4(), partSchema).schema;
       });
 
@@ -106,6 +106,12 @@ describe('belongsTo', function() {
 
         it('passes through options', function() {
           should(subject.isRequired).be.true;
+        });
+      });
+
+      describe('enum', function() {
+        it('applies the provided enum to the _type path', function() {
+          should(schema.paths.assemblable_type.enumValues).containDeepOrdered([ 'Bed', 'Dresser', 'Chair' ]);
         });
       });
     });
