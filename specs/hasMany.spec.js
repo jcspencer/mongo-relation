@@ -15,6 +15,7 @@ describe('hasMany without options', function(){
 
     userSchema = new mongoose.Schema({});
     userSchema.hasMany('widgets');
+    userSchema.hasMany('wadgets', { modelName: 'Widget' });
     User = mongoose.model('User', userSchema);
   });
 
@@ -22,6 +23,9 @@ describe('hasMany without options', function(){
     it('has a virtual to represent the relationship', function(){
       should(userSchema.virtuals.widgets).not.equal(undefined);
       should(userSchema.virtuals.widgets.path).equal('widgets');
+      should(userSchema.virtuals.wadgets).not.equal(undefined);
+      should(userSchema.virtuals.wadgets.path).equal('wadgets');
+      should((new User).wadgets.associationModelName).equal('Widget');
     });
   });
 
