@@ -254,7 +254,6 @@ describe('hasMany without options', function(){
         done();
       });
     });
-
   });
 
   describe('append', function(){
@@ -477,6 +476,33 @@ describe('hasMany polymorphic:true', function() {
       should(find).be.an.instanceof(mongoose.Query);
       should(find._conditions.playable).eql(tour._id);
       should(find._conditions.playable_type).eql('Tour');
+    });
+  });
+});
+
+describe('hasMany inverse_of', function() {
+  var Reader, reader, Book;
+
+  before(function(){
+    readerSchema = mongoose.Schema({ });
+    readerSchema.hasMany('books', { inverse_of: 'owner' });
+    Reader = mongoose.model('Reader', readerSchema);
+    reader = new Reader();
+
+    bookSchema = new mongoose.Schema({});
+    bookSchema.belongsTo('owner', { modelName: 'Reader' });
+    Book = mongoose.model('Book', bookSchema);
+  });
+
+  describe('create', function() {
+    it('sets the correct foreign key', function(done) {
+      reader.books.create({}, function(err, book) {
+        should.strictEqual(err, null);
+
+        book.should.be.an.instanceof(Book);
+        book.owner.should.equal(reader._id);
+        done();
+      });
     });
   });
 });
