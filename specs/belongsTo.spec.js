@@ -32,7 +32,7 @@ describe('belongsTo', function() {
   });
 
   it('defaults required to undefined', function() {
-    should(subject.isRequired).eql(undefined);
+    should(subject.isRequired).eql(false);
   });
 
   describe('options', function() {
@@ -68,9 +68,12 @@ describe('belongsTo', function() {
 
     describe('polymorphic', function() {
       before(function() {
-        var partSchema = new mongoose.Schema({});
+        var partSchema = new mongoose.Schema({}),
+            spareSchema = new mongoose.Schema({});
         partSchema.belongsTo('assemblable', { polymorphic: true, required: true, enum: [ 'Bed', 'Dresser', 'Chair' ] });
+        spareSchema.belongsTo('assemblable', { polymorphic: true, });
         schema = mongoose.model('Part_' + uuid.v4(), partSchema).schema;
+        spareModel = mongoose.model('Spare_' + uuid.v4(), spareSchema).schema;
       });
 
       describe('ObjectID half', function() {
@@ -89,7 +92,7 @@ describe('belongsTo', function() {
         });
 
         it('passes through options', function() {
-          should(subject.isRequired).be.true;
+          should(subject.isRequired).eql(true);
         });
       });
 
@@ -105,13 +108,23 @@ describe('belongsTo', function() {
         });
 
         it('passes through options', function() {
-          should(subject.isRequired).be.true;
+          should(subject.isRequired).eql(true);
         });
       });
 
       describe('enum', function() {
         it('applies the provided enum to the _type path', function() {
           should(schema.paths.assemblable_type.enumValues).containDeepOrdered([ 'Bed', 'Dresser', 'Chair' ]);
+        });
+      });
+
+      describe('setting required to false', function() {
+        it('sets required on the id to false', function() {
+          should(spareModel.paths.assemblable.isRequired).eql(false);
+        });
+
+        it('sets required on the type to false', function() {
+          should(spareModel.paths.assemblable_type.isRequired).eql(false);
         });
       });
     });
