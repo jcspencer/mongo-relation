@@ -1,11 +1,11 @@
 {
-  "name": "mongo-relation",
+  "name": "mongoose-relation",
   "description": "Model relationships plugin for Mongoose",
-  "version": "0.5.15",
-  "homepage": "https://github.com/JamesS237/mongo-relation/",
+  "version": "0.5.16",
+  "homepage": "https://github.com/shake-apps/mongo-relation/",
   "repository": {
     "type": "git",
-    "url": "git://github.com/JamesS237/mongo-relation.git"
+    "url": "git://github.com/shake-apps/mongo-relation.git"
   },
   "keywords": [
     "mongodb",
@@ -15,9 +15,8 @@
     "relationships"
   ],
   "author": {
-    "name": "Jerome Gravel-Niquet",
-    "email": "jeromegn@gmail.com",
-    "url": "http://jgn.me/"
+    "name": "Jonathon Storer",
+    "email": "jonathon.scott.storer@gmail.com"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha -R spec specs/*.spec.js",
