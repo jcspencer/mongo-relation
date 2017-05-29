@@ -1,3 +1,5 @@
+*NOTE*: I don't recommend using this at all (!!!!), however this fork has been updated to work with Mongoose 4+. This allows you to upgrade Mongo to the latest version.
+
 Mongoose Relationships [![Build Status](https://travis-ci.org/JamesS237/mongo-relation.svg?branch=master)](https://travis-ci.org/JamesS237/mongo-relation)
 ======================
 _... because sometimes embedded documents aren't enough._
