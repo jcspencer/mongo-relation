@@ -28,7 +28,9 @@
   },
   "dependencies": {
     "async": "^0.9.0",
-    "i": "^0.3.2"
+    "i": "^0.3.2",
+    "why-is-node-running": "^1.2.3",
+    "wtfnode": "^0.5.7"
   },
   "devDependencies": {
     "mongoose": ">=3.0.0",

@@ -1,4 +1,4 @@
-require('../spec_helper');
+require('../');
 
 var should       = require('should')
   , Relationship = require('../../lib/relationship/hasAndBelongsToMany')

@@ -1,14 +1,14 @@
-require('./spec_helper');
+'use strict';
 
-var mongoose = require('mongoose'),
-    should   = require('should'),
-    uuid     = require('node-uuid');
+let mongoose = require('./');;
+let should = require('should');
+let uuid = require('node-uuid');
 
 describe('belongsTo', function() {
-  let subject = null;
+  let subject, schema, partSchema, spareModel;
 
   before(function() {
-    var partSchema = new mongoose.Schema({});
+    partSchema = new mongoose.Schema({});
     partSchema.belongsTo('widget');
     schema = mongoose.model('Part_' + uuid.v4(), partSchema).schema;
     subject = schema.paths.widget;
@@ -67,7 +67,7 @@ describe('belongsTo', function() {
 
     describe('polymorphic', function() {
       before(function() {
-        var partSchema = new mongoose.Schema({}),
+        let partSchema = new mongoose.Schema({}),
             spareSchema = new mongoose.Schema({});
         partSchema.belongsTo('assemblable', { polymorphic: true, required: true, enum: [ 'Bed', 'Dresser', 'Chair' ] });
         spareSchema.belongsTo('assemblable', { polymorphic: true, });
@@ -129,7 +129,7 @@ describe('belongsTo', function() {
     });
 
     describe('touch:true', function(done) {
-      var messageSchema, Message, message
+      let messageSchema, Message, message
         , mailboxSchema, Mailbox, mailbox;
 
       before(function(done) {
@@ -151,7 +151,7 @@ describe('belongsTo', function() {
       });
 
       it('touches the parent document before save', function(done) {
-        var oldVersion = mailbox.__v;
+        let oldVersion = mailbox.__v;
         message.save(function(err){
           should.strictEqual(err, null);
           Mailbox.findById(mailbox._id, function(err, mailbox){

@@ -1,12 +1,12 @@
-require('./spec_helper');
+require('./');
 
-var mongoose = require('mongoose')
+let mongoose = require('mongoose')
   , async    = require('async')
   , should   = require('should')
   , uuid     = require('node-uuid');
 
 describe('hasMany without options', function(){
-  var userSchema, User, user, widgetSchema, Widget, widget;
+  let userSchema, User, user, widgetSchema, Widget, widget;
 
   before(function(){
     widgetSchema = mongoose.Schema({ name: String });
@@ -20,7 +20,7 @@ describe('hasMany without options', function(){
   });
 
   describe('schema', function(){
-    it('has a virtual to represent the relationship', function(){
+    it.only('has a virtual to represent the relationship', function(){
       should(userSchema.virtuals.widgets).not.equal(undefined);
       should(userSchema.virtuals.widgets.path).equal('widgets');
       should(userSchema.virtuals.wadgets).not.equal(undefined);
@@ -100,7 +100,7 @@ describe('hasMany without options', function(){
   });
 
   describe('find', function(){
-    var find;
+    let find;
 
     before(function(){
       user = new User();
@@ -187,7 +187,7 @@ describe('hasMany without options', function(){
   });
 
   describe('findOne', function(){
-    var find;
+    let find;
 
     before(function(done){
       user = new User();
@@ -211,7 +211,7 @@ describe('hasMany without options', function(){
   });
 
   describe('concat', function(){
-    var other_widget;
+    let other_widget;
 
     before(function(){
       user = new User();
@@ -267,7 +267,7 @@ describe('hasMany without options', function(){
   });
 
   describe('push', function(){
-    var otherWidget;
+    let otherWidget;
 
     before(function(){
       user = new User({});
@@ -278,14 +278,14 @@ describe('hasMany without options', function(){
     });
 
     it('adds relationship information to the child', function(){
-      var returnedWidget = user.widgets.push(widget);
+      let returnedWidget = user.widgets.push(widget);
       should(widget.user).eql(user._id);
       should(returnedWidget.user).eql(user._id);
       should(returnedWidget._id).eql(widget._id);
     });
 
     it('adds relationship information to many children', function(){
-      var returnedWidgets = user.widgets.push([ widget, otherWidget ]);
+      let returnedWidgets = user.widgets.push([ widget, otherWidget ]);
       should(widget.user).eql(user._id);
       should(otherWidget.user).eql(user._id);
 
@@ -337,7 +337,7 @@ describe('hasMany without options', function(){
 });
 
 describe('hasMany dependent', function(){
-  var postSchema, Post, post
+  let postSchema, Post, post
     , likeSchema, Like, like, likeEventCalled = false
     , favoriteSchema, Favorite, favorite, favoriteEventCalled = false
     , repostSchema, Repost, repost, repostEventCalled = false;
@@ -419,7 +419,7 @@ describe('hasMany dependent', function(){
 });
 
 describe('hasMany polymorphic:true', function() {
-  var tourSchema, Tour, tour, venueSchema, Venue, venue;
+  let tourSchema, Tour, tour, venueSchema, Venue, venue;
 
   before(function(){
     venueSchema = mongoose.Schema({ });
@@ -472,7 +472,7 @@ describe('hasMany polymorphic:true', function() {
 
   describe('#find', function() {
     it('builds a ploymorphic query', function() {
-      var find = tour.venues.find();
+      let find = tour.venues.find();
       should(find).be.an.instanceof(mongoose.Query);
       should(find._conditions.playable).eql(tour._id);
       should(find._conditions.playable_type).eql('Tour');
@@ -481,7 +481,7 @@ describe('hasMany polymorphic:true', function() {
 });
 
 describe('hasMany inverse_of', function() {
-  var Reader, reader, Book;
+  let Reader, reader, Book;
 
   before(function(){
     readerSchema = mongoose.Schema({ });
@@ -508,14 +508,14 @@ describe('hasMany inverse_of', function() {
 });
 
 describe('hasMany discriminated', function() {
-  var departmentSchema, Department, department
+  let departmentSchema, Department, department
     , BaseSchema
     , Product, product
     , DairyProduct, dairy
     , ProduceProduct, produce;
 
   before(function(){
-    var util = require('util');
+    let util = require('util');
     function BaseSchema() {
       mongoose.Schema.apply(this, arguments);
       this.belongsTo('department');
@@ -551,7 +551,7 @@ describe('hasMany discriminated', function() {
     });
 
     it('concats a hertogenious set of child documents', function(done) {
-      var product = new Product()
+      let product = new Product()
         , dairy = new DairyProduct()
         , produce = new ProduceProduct();
 
@@ -592,7 +592,7 @@ describe('hasMany discriminated', function() {
 });
 
 describe('#__touch', function(){
-  var postSchema, Post, post;
+  let postSchema, Post, post;
 
   before(function(){
     postSchema = mongoose.Schema({ body: String });
@@ -607,7 +607,7 @@ describe('#__touch', function(){
   it('saves the document when called', function(done){
     post = new Post;
     post.save(function (err) {
-      var version = post.__v;
+      let version = post.__v;
       post.__touch(function(err){
         should(post.__v).not.eql(version);
         done();
