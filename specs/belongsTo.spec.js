@@ -2,11 +2,10 @@ require('./spec_helper');
 
 var mongoose = require('mongoose'),
     should   = require('should'),
-    uuid     = require('node-uuid'),
-    schema;
+    uuid     = require('node-uuid');
 
 describe('belongsTo', function() {
-  subject = null;
+  let subject = null;
 
   before(function() {
     var partSchema = new mongoose.Schema({});
