@@ -1,5 +1,3 @@
-let wtfnode = require('wtfnode');
-
 let mongoose = require('../')(require('mongoose'));
 
 let resetDb = function(next){
@@ -10,11 +8,14 @@ before(function(done){
   if(mongoose.get('isConnected')){
     resetDb(done);
   } else {
-    mongoose.connection.on('open', function(){ resetDb(done); }); }
+    mongoose.connection.on('open', function() {
+      resetDb(done);
+    });
+  }
 });
 
 after(function (done) {
-  wtfnode.dump();
+  mongoose.disconnect();
   done();
 });
 

@@ -128,36 +128,35 @@ describe('belongsTo', function() {
       });
     });
 
-    describe('touch:true', function(done) {
+    describe('touch:true', function() {
       let messageSchema, Message, message
         , mailboxSchema, Mailbox, mailbox;
 
-      before(function(done) {
+      before(function() {
         messageSchema = new mongoose.Schema({ });
         messageSchema.belongsTo('mailbox', { touch: true });
         Message = mongoose.model('Message', messageSchema);
 
         mailboxSchema = new mongoose.Schema({ });
         mailboxSchema.hasMany('messages');
-
         Mailbox = mongoose.model('Mailbox', mailboxSchema);
-        mailbox = new Mailbox();
-        mailbox.save(function(err){
-          mailbox.messages.create({ }, function(err, msg){
-            message = msg;
-            done();
-          });
+
+        return Mailbox.create({}).then(function(_mailbox) {
+          mailbox = _mailbox;
+          return mailbox.messages.create({ });
+        }).then(function (msg) {
+          message = msg;
+        }).catch(function (err) {
+          throw (err);
         });
       });
 
-      it('touches the parent document before save', function(done) {
+      it('touches the parent document before save', function() {
         let oldVersion = mailbox.__v;
-        message.save(function(err){
-          should.strictEqual(err, null);
-          Mailbox.findById(mailbox._id, function(err, mailbox){
-            should(mailbox.__v).not.eql(oldVersion);
-            done();
-          });
+        return message.save().then(function(){
+          return Mailbox.findById(mailbox._id);
+        }).then(function(mailbox){
+          should(mailbox.__v).not.eql(oldVersion);
         });
       });
     });

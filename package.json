@@ -33,9 +33,9 @@
     "wtfnode": "^0.5.7"
   },
   "devDependencies": {
+    "mocha": "^5.0.0",
     "mongoose": ">=3.0.0",
-    "mocha": "latest",
-    "should": "latest",
-    "node-uuid": "latest"
+    "node-uuid": "latest",
+    "should": "latest"
   }
 }

@@ -17,13 +17,13 @@ describe('hasManyBelongsToMany', function() {
     it("cannot set 'dependent:nullify' and 'setChild:false'", function(){
       (function(){
         BookSchema.habtm('Page', { setChild: false, dependent: 'nullify' });
-      }).should.throw("dependent cannot be set to 'nullify' while setChild is false")
+      }).should.throw(Error, /dependent cannot be set to 'nullify' while setChild is false/)
     });
 
     it("cannot set 'dependent:destroy' and 'setChild:false'", function(){
       (function(){
         BookSchema.habtm('Page', { setChild: false, dependent: 'destroy' });
-      }).should.throw("dependent cannot be set to 'destroy' while setChild is false")
+      }).should.throw(Error, /dependent cannot be set to 'destroy' while setChild is false/)
     });
   });
 
@@ -39,7 +39,7 @@ describe('hasManyBelongsToMany', function() {
     let category = new Category(),
         post     = new TwitterPost();
 
-    category.posts.create.should.be.a.Function;
+    should(category.posts.create).be.a.Function;
     post.categories.create.should.be.a.Function;
 
     category.posts.find.should.be.a.Function;
